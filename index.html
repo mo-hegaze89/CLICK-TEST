@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>اختبار سرعة الكبس</title>
+  <style>
+    :root {
+      --main-bg: #ffffff;
+      --text-color: #111111;
+      --button-bg: #007bff;
+      --button-text: white;
+    }
+
+    body.dark {
+      --main-bg: #111111;
+      --text-color: #ffffff;
+      --button-bg: #00bfff;
+      --button-text: black;
+    }
+
+    body {
+      background-color: var(--main-bg);
+      color: var(--text-color);
+      font-family: 'Tajawal', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      transition: background-color 0.5s, color 0.5s;
+      flex-direction: column;
+      padding: 1rem;
+    }
+
+    .toggle-theme {
+      position: fixed;
+      top: 1rem;
+      left: 1rem;
+      background: var(--button-bg);
+      color: var(--button-text);
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .active {
+      display: flex;
+    }
+
+    input {
+      padding: 0.7rem;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      width: 250px;
+      text-align: center;
+    }
+
+    button {
+      padding: 1rem 2rem;
+      font-size: 1.2rem;
+      background: var(--button-bg);
+      color: var(--button-text);
+      border: none;
+      border-radius: 15px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+    }
+
+    .countdown {
+      font-size: 5rem;
+      animation: pop 1s ease;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0.1); opacity: 0; }
+      50% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(1); }
+    }
+
+    .score {
+      font-size: 2rem;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .click-button {
+      font-size: 2rem;
+      padding: 2rem;
+    }
+
+    .timer {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <button class="toggle-theme" onclick="toggleTheme()">🌗</button>
+
+  <!-- شاشة تسجيل الدخول -->
+  <div class="screen active" id="login-screen">
+    <h2>تسجيل الدخول</h2>
+    <input type="text" id="username" placeholder="اسم المستخدم" />
+    <input type="email" id="email" placeholder="البريد الإلكتروني" />
+    <input type="password" id="password" placeholder="كلمة المرور" />
+    <button onclick="goToWelcome()">دخول</button>
+  </div>
+
+  <!-- شاشة البدء -->
+  <div class="screen" id="welcome-screen">
+    <h2>هل تريد البدء في اختبار سرعة الكبس؟</h2>
+    <button onclick="startCountdown()">نعم، أريد البدء</button>
+  </div>
+
+  <!-- شاشة العد التنازلي -->
+  <div class="screen" id="countdown-screen">
+    <div class="countdown" id="countdown-number">3</div>
+  </div>
+
+  <!-- شاشة الاختبار -->
+  <div class="screen" id="test-screen">
+    <div class="timer" id="timer">10</div>
+    <div class="score" id="score">0 كبسة</div>
+    <button class="click-button" onclick="registerClick()">كبسة</button>
+  </div>
+
+  <!-- شاشة النتيجة -->
+  <div class="screen" id="result-screen">
+    <h2>انتهى الاختبار!</h2>
+    <p id="result-text"></p>
+    <button onclick="location.reload()">إعادة المحاولة</button>
+  </div>
+
+  <script>
+    let count = 0;
+    let timeLeft = 10;
+    let interval;
+
+    function toggleTheme() {
+      document.body.classList.toggle("dark");
+    }
+
+    function goToWelcome() {
+      document.getElementById("login-screen").classList.remove("active");
+      document.getElementById("welcome-screen").classList.add("active");
+    }
+
+    function startCountdown() {
+      document.getElementById("welcome-screen").classList.remove("active");
+      document.getElementById("countdown-screen").classList.add("active");
+
+      let countdown = 3;
+      const countdownNumber = document.getElementById("countdown-number");
+      countdownNumber.textContent = countdown;
+
+      const intervalId = setInterval(() => {
+        countdown--;
+        countdownNumber.textContent = countdown;
+        countdownNumber.classList.remove("countdown");
+        void countdownNumber.offsetWidth; // Restart animation
+        countdownNumber.classList.add("countdown");
+
+        if (countdown === 0) {
+          clearInterval(intervalId);
+          document.getElementById("countdown-screen").classList.remove("active");
+          document.getElementById("test-screen").classList.add("active");
+          startTest();
+        }
+      }, 1000);
+    }
+
+    function startTest() {
+      count = 0;
+      timeLeft = 10;
+      document.getElementById("score").textContent = "0 كبسة";
+      document.getElementById("timer").textContent = timeLeft;
+
+      interval = setInterval(() => {
+        timeLeft--;
+        document.getElementById("timer").textContent = timeLeft;
+        if (timeLeft === 0) {
+          clearInterval(interval);
+          endTest();
+        }
+      }, 1000);
+    }
+
+    function registerClick() {
+      count++;
+      document.getElementById("score").textContent = `${count} كبسة`;
+    }
+
+    function endTest() {
+      document.getElementById("test-screen").classList.remove("active");
+      document.getElementById("result-screen").classList.add("active");
+      const cps = (count / 10).toFixed(2);
+      document.getElementById("result-text").textContent = `أنت تكبس بسرعة ${cps} كبسة في الثانية!`;
+    }
+  </script>
+</body>
+</html>
+
